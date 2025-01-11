@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from 'sonner'
 import { SuccessToast } from '@/components/success-toast'
+import { Eye, EyeOff } from "lucide-react"
 
 // Define the validation schema
 const registerSchema = z.object({
@@ -41,6 +42,11 @@ const registerSchema = z.object({
 // Infer the type from the schema
 type RegisterFormData = z.infer<typeof registerSchema>;
 
+// Add these type definitions at the top of the file
+type ApiErrorResponse = {
+  message: string;
+};
+
 export function RegisterForm({
   className,
   ...props
@@ -48,6 +54,8 @@ export function RegisterForm({
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const {
     register,
@@ -82,7 +90,7 @@ export function RegisterForm({
         }),
       })
 
-      const responseData = await response.json()
+      const responseData = await response.json() as ApiErrorResponse
 
       if (!response.ok) {
         throw new Error(responseData.message || "Registration failed")
@@ -111,7 +119,9 @@ export function RegisterForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={(e) => {
+            void handleSubmit(onSubmit)(e);
+          }}>
             <div className="flex flex-col gap-6">
               {serverError && (
                 <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md">
@@ -146,11 +156,39 @@ export function RegisterForm({
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  {...register("password")}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    className="transition-all duration-200 ease-in-out"
+                    {...register("password")}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent hover:scale-110 transition-all duration-200"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    <div className="relative w-4 h-4">
+                      <EyeOff 
+                        className={`h-4 w-4 absolute transition-all duration-200 ${
+                          showPassword 
+                            ? "opacity-100 rotate-0" 
+                            : "opacity-0 rotate-90"
+                        }`} 
+                      />
+                      <Eye 
+                        className={`h-4 w-4 absolute transition-all duration-200 ${
+                          showPassword 
+                            ? "opacity-0 -rotate-90" 
+                            : "opacity-100 rotate-0"
+                        }`} 
+                      />
+                    </div>
+                  </Button>
+                </div>
                 {errors.password && (
                   <p className="text-sm text-destructive">
                     {errors.password.message}
@@ -159,11 +197,39 @@ export function RegisterForm({
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  {...register("confirmPassword")}
-                />
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    className="transition-all duration-200 ease-in-out"
+                    {...register("confirmPassword")}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent hover:scale-110 transition-all duration-200"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    <div className="relative w-4 h-4">
+                      <EyeOff 
+                        className={`h-4 w-4 absolute transition-all duration-200 ${
+                          showConfirmPassword 
+                            ? "opacity-100 rotate-0" 
+                            : "opacity-0 rotate-90"
+                        }`} 
+                      />
+                      <Eye 
+                        className={`h-4 w-4 absolute transition-all duration-200 ${
+                          showConfirmPassword 
+                            ? "opacity-0 -rotate-90" 
+                            : "opacity-100 rotate-0"
+                        }`} 
+                      />
+                    </div>
+                  </Button>
+                </div>
                 {errors.confirmPassword && (
                   <p className="text-sm text-destructive">
                     {errors.confirmPassword.message}

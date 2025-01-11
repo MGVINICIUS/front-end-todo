@@ -13,10 +13,17 @@ import { Toaster } from 'sonner'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <Toaster position='top-right' />
+      <Toaster richColors duration={3000} position='top-right' />
       <BrowserRouter>
         <Routes>
-          <Route path='/' element={<App />} />
+          <Route
+            path='/'
+            element={
+              <AuthGuard requireAuth>
+                <App />
+              </AuthGuard>
+            }
+          />
           <Route
             path='/login'
             element={
@@ -30,14 +37,6 @@ createRoot(document.getElementById('root')!).render(
             element={
               <AuthGuard>
                 <Register />
-              </AuthGuard>
-            }
-          />
-          <Route
-            path='/'
-            element={
-              <AuthGuard requireAuth>
-                <App />
               </AuthGuard>
             }
           />

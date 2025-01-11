@@ -1,10 +1,13 @@
 import { Navbar } from "./components/navbar"
+import Todo from "./components/Todo"
 
 const App = () => {
     return (
-        <div className='w-screen h-screen'>
+        <div className='h-full w-full'>
             <Navbar />
-            <div className='bg-blue-300 w-1/2 h-1/2'></div>
+            <div className="max-w-5xl mx-auto">
+                <Todo />
+            </div>
         </div>
     )
 }

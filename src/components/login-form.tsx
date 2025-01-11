@@ -10,12 +10,11 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Link, useNavigate } from "react-router-dom"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { toast } from 'sonner'
-import { SuccessToast } from '@/components/success-toast'
+import { Eye, EyeOff } from "lucide-react"
 
 const loginSchema = z.object({
   email: z
@@ -35,10 +34,12 @@ export function LoginForm({
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -48,10 +49,18 @@ export function LoginForm({
     },
   })
 
+  // Clear server error when user modifies the form
+  useEffect(() => {
+    const subscription = watch(() => {
+      if (serverError) setServerError(null)
+    })
+    return () => subscription.unsubscribe()
+  }, [watch, serverError])
+
   const onSubmit = async (data: LoginFormData) => {
+    const startTime = Date.now()
     try {
       setIsLoading(true)
-      setServerError(null)
 
       const apiUrl = `${import.meta.env.VITE_API_URL}/auth/login`
 
@@ -68,17 +77,18 @@ export function LoginForm({
         throw new Error(errorData.message || "Login failed")
       }
 
-      const responseData = await response.json()
+      const responseData: { token: string } = await response.json()
       localStorage.setItem("token", responseData.token)
-      
-      // Add success toast
-      toast.custom(() => (
-        <SuccessToast message="Successfully logged in!" />
-      ))
-
       navigate("/")
     } catch (err) {
       console.error('Login error:', err)
+      const elapsed = Date.now() - startTime
+      const minimumLoadingTime = 500 // 500ms minimum loading time
+      
+      if (elapsed < minimumLoadingTime) {
+        await new Promise(resolve => setTimeout(resolve, minimumLoadingTime - elapsed))
+      }
+      
       setServerError(err instanceof Error ? err.message : "Invalid credentials")
     } finally {
       setIsLoading(false)
@@ -118,11 +128,39 @@ export function LoginForm({
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <Input 
-                  id="password" 
-                  type="password"
-                  {...register("password")} 
-                />
+                <div className="relative">
+                  <Input 
+                    id="password" 
+                    type={showPassword ? "text" : "password"}
+                    className="transition-all duration-200 ease-in-out"
+                    {...register("password")} 
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent hover:scale-110 transition-all duration-200"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    <div className="relative w-4 h-4">
+                      <EyeOff 
+                        className={`h-4 w-4 absolute transition-all duration-200 ${
+                          showPassword 
+                            ? "opacity-100 rotate-0" 
+                            : "opacity-0 rotate-90"
+                        }`} 
+                      />
+                      <Eye 
+                        className={`h-4 w-4 absolute transition-all duration-200 ${
+                          showPassword 
+                            ? "opacity-0 -rotate-90" 
+                            : "opacity-100 rotate-0"
+                        }`} 
+                      />
+                    </div>
+                  </Button>
+                </div>
                 {errors.password && (
                   <p className="text-sm text-destructive">
                     {errors.password.message}
