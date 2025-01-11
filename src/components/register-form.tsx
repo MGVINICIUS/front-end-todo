@@ -19,8 +19,7 @@ import { z } from "zod"
 const registerSchema = z.object({
   username: z
     .string()
-    .min(3, "Username must be at least 3 characters")
-    .max(20, "Username must be less than 20 characters"),
+    .min(2, "Username must be at least 2 characters"),
   email: z
     .string()
     .email("Please enter a valid email address"),
@@ -67,7 +66,9 @@ export function RegisterForm({
       setIsLoading(true)
       setServerError(null)
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
+      const apiUrl = `${import.meta.env.VITE_API_URL}/auth/register`
+
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -79,9 +80,10 @@ export function RegisterForm({
         }),
       })
 
+      const responseData = await response.json()
+
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Registration failed")
+        throw new Error(responseData.message || "Registration failed")
       }
 
       navigate("/login")
@@ -114,7 +116,7 @@ export function RegisterForm({
                 <Input
                   id="username"
                   {...register("username")}
-                  placeholder="johndoe"
+                  placeholder="username"
                 />
                 {errors.username && (
                   <p className="text-sm text-destructive">

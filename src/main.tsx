@@ -12,11 +12,9 @@ createRoot(document.getElementById('root')!).render(
     <ThemeProvider>
       <BrowserRouter>
         <Routes>
-          <Route path='/Login' element={<Login />} />
-          <Route path='/Register' element={<Register />} />
-        </Routes>
-      <Routes>
           <Route path='/' element={<App />} />
+          <Route path='/login' element={<Login />} />
+          <Route path='/register' element={<Register />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
