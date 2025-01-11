@@ -14,6 +14,8 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { toast } from 'sonner'
+import { SuccessToast } from '@/components/success-toast'
 
 const loginSchema = z.object({
   email: z
@@ -67,11 +69,13 @@ export function LoginForm({
       }
 
       const responseData = await response.json()
-      
-      // Store the token
       localStorage.setItem("token", responseData.token)
       
-      // Redirect to home page
+      // Add success toast
+      toast.custom(() => (
+        <SuccessToast message="Successfully logged in!" />
+      ))
+
       navigate("/")
     } catch (err) {
       console.error('Login error:', err)

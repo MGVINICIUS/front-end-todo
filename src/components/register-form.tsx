@@ -14,6 +14,8 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { toast } from 'sonner'
+import { SuccessToast } from '@/components/success-toast'
 
 // Define the validation schema
 const registerSchema = z.object({
@@ -85,6 +87,11 @@ export function RegisterForm({
       if (!response.ok) {
         throw new Error(responseData.message || "Registration failed")
       }
+
+      // Add success toast
+      toast.custom(() => (
+        <SuccessToast message="Account successfully created!" />
+      ))
 
       navigate("/login")
     } catch (err) {
