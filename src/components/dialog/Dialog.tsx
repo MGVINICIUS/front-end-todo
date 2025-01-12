@@ -10,54 +10,50 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import React from 'react';
+import { Textarea } from "@/components/ui/textarea";
+import { NewTask } from '@/types/todo';
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
-type Priority = 'low' | 'medium' | 'high';
-
-interface Task {
-    id: string;
+type FormData = {
     title: string;
-    completed: boolean;
-    time: string;
-    priority?: Priority;
-    isUrgent?: boolean;
-}
+    description: string;
+    dueDate: string;
+};
 
-export function AddTaskDialog({ onAddTask }: { onAddTask: (task: Task) => void }) {
-    const [title, setTitle] = React.useState('');
-    const [time, setTime] = React.useState('');
-    const [priority, setPriority] = React.useState<Priority>('low');
+const MAX_DATE = new Date(2038, 0, 19, 3, 14, 7);
+
+export function AddTaskDialog({ onAddTask }: { onAddTask: (task: NewTask) => void }) {
     const [open, setOpen] = React.useState(false);
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>();
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit = async (data: FormData) => {
+        if (isSubmitting) return;
         
-        if (!title.trim()) return;
-
-        const newTask: Task = {
-            id: crypto.randomUUID(),
-            title: title.trim(),
-            completed: false,
-            time: time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            priority: priority,
-            isUrgent: priority === 'high'
-        };
-
-        onAddTask(newTask);
-        setTitle('');
-        setTime('');
-        setPriority('low');
-        setOpen(false);
+        try {
+            setIsSubmitting(true);
+            
+            const newTask: NewTask = {
+                title: data.title.trim(),
+                description: data.description?.trim() || '',
+                dueDate: data.dueDate || new Date().toISOString(),
+            };
+            
+            console.log('Submitting task:', newTask);
+            await onAddTask(newTask);
+            reset();
+            setOpen(false);
+        } catch (error) {
+            console.error('Failed to add task:', error);
+            toast.error(error instanceof Error ? error.message : "Failed to create task");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -72,7 +68,7 @@ export function AddTaskDialog({ onAddTask }: { onAddTask: (task: Task) => void }
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit(onSubmit)}>
                     <DialogHeader>
                         <DialogTitle>Add new task</DialogTitle>
                         <DialogDescription>
@@ -83,56 +79,48 @@ export function AddTaskDialog({ onAddTask }: { onAddTask: (task: Task) => void }
                         <div className="grid gap-2">
                             <Label htmlFor="title">Task</Label>
                             <Input 
-                                id="title" 
-                                value={title} 
-                                onChange={(e) => setTitle(e.target.value)}
+                                id="title"
+                                {...register("title", { required: true })}
                                 placeholder="Enter your task"
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="time">Time</Label>
-                            <Input 
-                                id="time" 
-                                type="time"
-                                value={time} 
-                                onChange={(e) => setTime(e.target.value)}
+                            <Label htmlFor="description">Description</Label>
+                            <Textarea 
+                                id="description"
+                                {...register("description")}
+                                placeholder="Enter task description"
+                                className="resize-none"
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="priority">Priority</Label>
-                            <Select 
-                                value={priority} 
-                                onValueChange={(value: Priority) => setPriority(value)}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select priority" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="low">
-                                        <span className="flex items-center">
-                                            <span className="h-2 w-2 rounded-full bg-blue-500 mr-2"></span>
-                                            Low
-                                        </span>
-                                    </SelectItem>
-                                    <SelectItem value="medium">
-                                        <span className="flex items-center">
-                                            <span className="h-2 w-2 rounded-full bg-yellow-500 mr-2"></span>
-                                            Medium
-                                        </span>
-                                    </SelectItem>
-                                    <SelectItem value="high">
-                                        <span className="flex items-center">
-                                            <span className="h-2 w-2 rounded-full bg-red-500 mr-2"></span>
-                                            High
-                                        </span>
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <Label htmlFor="dueDate">Due Date</Label>
+                            <Input 
+                                id="dueDate"
+                                type="datetime-local"
+                                {...register("dueDate", {
+                                    validate: (value) => {
+                                        if (!value) return true;
+                                        const date = new Date(value);
+                                        return date <= MAX_DATE || 
+                                            "Date cannot be later than January 19, 2038 03:14:07";
+                                    }
+                                })}
+                                className={errors.dueDate ? "border-red-500" : ""}
+                            />
+                            {errors.dueDate && (
+                                <p className="text-sm text-red-500">
+                                    {errors.dueDate.message}
+                                </p>
+                            )}
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button type="submit" className="w-full">
-                            Add task
+                        <Button 
+                            type="submit" 
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? 'Creating...' : 'Create Task'}
                         </Button>
                     </DialogFooter>
                 </form>
