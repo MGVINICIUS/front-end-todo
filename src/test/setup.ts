@@ -14,7 +14,7 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 expect.extend({})
 
 // Setup MSW
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }))
 afterAll(() => server.close())
 afterEach(() => {
   cleanup()

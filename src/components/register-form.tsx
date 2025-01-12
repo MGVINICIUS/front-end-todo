@@ -16,7 +16,12 @@ import { Eye, EyeOff } from 'lucide-react'
 const registerSchema = z
   .object({
     username: z.string().min(2, 'Username must be at least 2 characters'),
-    email: z.string().email('Please enter a valid email address'),
+    email: z.string()
+      .min(5, 'Email must be at least 5 characters')
+      .max(254, 'Email must be less than 254 characters')
+      .email('Please enter a valid email address')
+      .trim()
+      .refine(email => !email.includes(' '), 'Email cannot contain spaces'),
     password: z
       .string()
       .min(6, 'Password must be at least 6 characters')

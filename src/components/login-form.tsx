@@ -66,13 +66,8 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         throw new Error(responseData.message || 'Login failed')
       }
 
-      console.log('Login successful for:', data.email)
-      console.log('Received token:', responseData.token)
-
       localStorage.removeItem('token')
       localStorage.setItem('token', responseData.token)
-
-      console.log('Stored token:', localStorage.getItem('token'))
 
       navigate('/')
     } catch (err) {
@@ -122,6 +117,8 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                     id='password'
                     type={showPassword ? 'text' : 'password'}
                     className='transition-all duration-200 ease-in-out'
+                    data-testid='password-input'
+                    aria-labelledby='password-label'
                     {...register('password')}
                   />
                   <Button
