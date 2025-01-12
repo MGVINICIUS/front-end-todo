@@ -10,7 +10,6 @@ import { AuthGuard } from '@/components/auth-guard'
 import { Toaster } from 'sonner'
 import { TodoProvider } from '@/contexts/TodoContext'
 
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>

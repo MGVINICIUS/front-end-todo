@@ -15,6 +15,7 @@ A modern, full-stack Todo application built with React, TypeScript, and Vite. Ma
 ## Tech Stack
 
 - **Frontend:**
+
   - React
   - TypeScript
   - Vite
@@ -42,22 +43,26 @@ A modern, full-stack Todo application built with React, TypeScript, and Vite. Ma
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/your-username/todo-app.git
 ```
 
 2. Install dependencies:
+
 ```bash
 pnpm install
 ```
 
 3. Set up environment variables:
-Create a `.env` file in the root directory:
+   Create a `.env` file in the root directory:
+
 ```env
 VITE_API_URL=http://localhost:8000/api/v1
 ```
 
 4. Start the development server:
+
 ```bash
 pnpm run dev
 ```
@@ -75,19 +80,19 @@ pnpm run dev
 
 ```typescript
 interface Task {
-    id: string;
-    title: string;
-    description: string;
-    completed: boolean;
-    dueDate: string;
-    time: string;
+  id: string
+  title: string
+  description: string
+  completed: boolean
+  dueDate: string
+  time: string
 }
 ```
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
+| Variable     | Description  | Default                      |
+| ------------ | ------------ | ---------------------------- |
 | VITE_API_URL | API base URL | http://localhost:8000/api/v1 |
 
 ## Development
@@ -99,6 +104,7 @@ This project uses Vite with HMR (Hot Module Replacement) and includes ESLint con
 For production applications, enable type-aware lint rules:
 
 1. Configure parserOptions:
+
 ```js
 export default tseslint.config({
   languageOptions: {
@@ -111,6 +117,7 @@ export default tseslint.config({
 ```
 
 2. Install and configure eslint-plugin-react:
+
 ```js
 import react from 'eslint-plugin-react'
 

@@ -18,14 +18,14 @@ interface TodoProviderProps {
 
 // Define all possible actions that can be dispatched
 type TodoAction =
-  | { type: 'FETCH_TODOS_START' }                    // Start loading todos
+  | { type: 'FETCH_TODOS_START' } // Start loading todos
   | { type: 'FETCH_TODOS_SUCCESS'; payload: Task[] } // Successfully fetched todos
-  | { type: 'FETCH_TODOS_ERROR'; payload: string }   // Error fetching todos
-  | { type: 'ADD_TODO'; payload: Task }              // Add a new todo
-  | { type: 'UPDATE_TODO'; payload: Task }           // Update existing todo
-  | { type: 'DELETE_TODO'; payload: string }         // Delete todo by id
+  | { type: 'FETCH_TODOS_ERROR'; payload: string } // Error fetching todos
+  | { type: 'ADD_TODO'; payload: Task } // Add a new todo
+  | { type: 'UPDATE_TODO'; payload: Task } // Update existing todo
+  | { type: 'DELETE_TODO'; payload: string } // Delete todo by id
   | { type: 'SET_SELECTED_TASK'; payload: Task | null } // Set task for editing
-  | { type: 'TOGGLE_EDIT_DIALOG'; payload: boolean }    // Toggle edit dialog
+  | { type: 'TOGGLE_EDIT_DIALOG'; payload: boolean } // Toggle edit dialog
 
 // Initial state for the todo context
 const initialState: TodoState = {
@@ -37,15 +37,15 @@ const initialState: TodoState = {
     date: new Date().toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     }),
     progress: {
       completed: 0,
-      total: 0
-    }
+      total: 0,
+    },
   },
   selectedTask: null,
-  editDialogOpen: false
+  editDialogOpen: false,
 }
 
 // Reducer function to handle all state updates
@@ -65,10 +65,10 @@ const todoReducer = (state: TodoState, action: TodoAction): TodoState => {
         listData: {
           ...state.listData,
           progress: {
-            completed: action.payload.filter(t => t.completed).length,
-            total: action.payload.length
-          }
-        }
+            completed: action.payload.filter((t) => t.completed).length,
+            total: action.payload.length,
+          },
+        },
       }
 
     // Handle error in fetching todos
@@ -84,43 +84,44 @@ const todoReducer = (state: TodoState, action: TodoAction): TodoState => {
         listData: {
           ...state.listData,
           progress: {
-            completed: newTasks.filter(t => t.completed).length,
-            total: newTasks.length
-          }
-        }
-      } }
+            completed: newTasks.filter((t) => t.completed).length,
+            total: newTasks.length,
+          },
+        },
+      }
+    }
 
     // Handle updating an existing todo
     case 'UPDATE_TODO': {
-      const updatedTasks = state.tasks.map(t => 
-        t.id === action.payload.id ? action.payload : t
-      )
+      const updatedTasks = state.tasks.map((t) => (t.id === action.payload.id ? action.payload : t))
       return {
         ...state,
         tasks: updatedTasks,
         listData: {
           ...state.listData,
           progress: {
-            completed: updatedTasks.filter(t => t.completed).length,
-            total: updatedTasks.length
-          }
-        }
-      } }
+            completed: updatedTasks.filter((t) => t.completed).length,
+            total: updatedTasks.length,
+          },
+        },
+      }
+    }
 
     // Handle deleting a todo
     case 'DELETE_TODO': {
-      const remainingTasks = state.tasks.filter(t => t.id !== action.payload)
+      const remainingTasks = state.tasks.filter((t) => t.id !== action.payload)
       return {
         ...state,
         tasks: remainingTasks,
         listData: {
           ...state.listData,
           progress: {
-            completed: remainingTasks.filter(t => t.completed).length,
-            total: remainingTasks.length
-          }
-        }
-      } }
+            completed: remainingTasks.filter((t) => t.completed).length,
+            total: remainingTasks.length,
+          },
+        },
+      }
+    }
 
     // Handle selecting a task for editing
     case 'SET_SELECTED_TASK':
@@ -145,24 +146,23 @@ const TodoContext = createContext<{
 // Provider component that wraps the app
 export function TodoProvider({ children, initialState }: TodoProviderProps) {
   // Initialize the reducer with initial state
-  const [state, dispatch] = useReducer(todoReducer, initialState || {
-    tasks: [],
-    isLoading: true,
-    error: null,
-    listData: {
-      title: 'Today',
-      date: new Date().toLocaleDateString(),
-      progress: { completed: 0, total: 0 }
+  const [state, dispatch] = useReducer(
+    todoReducer,
+    initialState || {
+      tasks: [],
+      isLoading: true,
+      error: null,
+      listData: {
+        title: 'Today',
+        date: new Date().toLocaleDateString(),
+        progress: { completed: 0, total: 0 },
+      },
+      selectedTask: null,
+      editDialogOpen: false,
     },
-    selectedTask: null,
-    editDialogOpen: false
-  })
-
-  return (
-    <TodoContext.Provider value={{ state, dispatch }}>
-      {children}
-    </TodoContext.Provider>
   )
+
+  return <TodoContext.Provider value={{ state, dispatch }}>{children}</TodoContext.Provider>
 }
 
 // Custom hook for accessing todo context
@@ -172,4 +172,4 @@ export const useTodo = () => {
     throw new Error('useTodo must be used within a TodoProvider')
   }
   return context
-} 
+}

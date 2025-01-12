@@ -1,21 +1,21 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom'
 
 interface AuthGuardProps {
-  children: React.ReactNode;
-  requireAuth?: boolean;
+  children: React.ReactNode
+  requireAuth?: boolean
 }
 
 export function AuthGuard({ children, requireAuth = false }: AuthGuardProps) {
   // Replace this with your actual auth check
-  const isAuthenticated = !!localStorage.getItem('token');
+  const isAuthenticated = !!localStorage.getItem('token')
 
   if (requireAuth && !isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to='/login' replace />
   }
 
   if (!requireAuth && isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to='/' replace />
   }
 
-  return <>{children}</>;
-} 
+  return <>{children}</>
+}
