@@ -233,6 +233,7 @@ export default function Todo() {
                         <Button
                           variant='ghost'
                           size='icon'
+                          aria-label="More"
                           className='opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'
                         >
                           <MoreHorizontal className='w-4 h-4' />

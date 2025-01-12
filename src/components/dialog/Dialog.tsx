@@ -76,6 +76,7 @@ export function AddTaskDialog({ onAddTask }: { onAddTask: (task: NewTask) => voi
         <Button
           variant='ghost'
           className='w-56 my-4 justify-start text-muted-foreground hover:text-foreground'
+          aria-label='Add new task'
         >
           <Plus className='w-4 h-4 mr-2' />
           Add new task

@@ -16,14 +16,29 @@ import { Textarea } from '@/components/ui/textarea'
 import { Task } from '@/types/todo'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
-
-type FormData = {
-  title: string
-  description: string
-  dueDate: string
-}
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 const MAX_DATE = new Date(2038, 0, 19, 3, 14, 7)
+
+const taskSchema = z.object({
+  title: z.string()
+    .min(1, 'Title is required')
+    .max(100, 'Title must be less than 100 characters'),
+  description: z.string()
+    .max(500, 'Description must be less than 500 characters')
+    .optional()
+    .default(''),
+  dueDate: z.string()
+    .refine(
+      (date) => !date || new Date(date) <= MAX_DATE,
+      'Date cannot be later than January 19, 2038 03:14:07'
+    )
+    .optional()
+    .default('')
+})
+
+type FormData = z.infer<typeof taskSchema>
 
 interface EditTaskDialogProps {
   task: Task
@@ -40,6 +55,7 @@ export function EditTaskDialog({ task, open, onOpenChange, onEditTask }: EditTas
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({
+    resolver: zodResolver(taskSchema),
     defaultValues: {
       title: task.title,
       description: task.description,
