@@ -17,141 +17,114 @@ import { AddTaskDialog } from "@/components/dialog/Dialog";
 import { todoApi } from '@/services/todoApi';
 import { toast } from 'sonner';
 import { SuccessToast } from '@/components/success-toast';
-import { Task, NewTask, ListData } from '@/types/todo';
+import { Task, NewTask } from '@/types/todo';
 import { EditTaskDialog } from "@/components/dialog/EditTaskDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useTodo } from '@/contexts/TodoContext'
 
 export default function Todo() {
-    const [tasks, setTasks] = useState<Task[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [listData, setListData] = useState<ListData>({
-        title: "Today's Tasks",
-        date: new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        }),
-        progress: {
-            completed: 0,
-            total: 0
-        }
-    });
+    // Get state and dispatch from TodoContext
+    const { state, dispatch } = useTodo()
+    
+    // Local state for managing the edit dialog
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
-    // Fetch initial data
+    // Fetch tasks on component mount
     useEffect(() => {
-        fetchTasks();
-    }, []);
-
-    // Update progress whenever tasks change
-    useEffect(() => {
-        setListData(prev => ({
-            ...prev,
-            progress: {
-                completed: tasks.filter(t => t.completed).length,
-                total: tasks.length
+        const fetchTasks = async () => {
+            dispatch({ type: 'FETCH_TODOS_START' })
+            try {
+                const data = await todoApi.getTodos()
+                dispatch({ type: 'FETCH_TODOS_SUCCESS', payload: data })
+            } catch (error) {
+                console.error('Failed to fetch tasks:', error)
+                dispatch({ 
+                    type: 'FETCH_TODOS_ERROR', 
+                    payload: 'Failed to fetch tasks' 
+                })
+                toast.error('Failed to fetch tasks')
             }
-        }));
-    }, [tasks]);
-
-    const fetchTasks = async () => {
-        try {
-            setIsLoading(true);
-            const data = await todoApi.getTodos();
-            console.log('Fetched tasks:', data);
-            setTasks(data);
-        } catch (error) {
-            setError('Failed to fetch tasks');
-            toast.error('Failed to fetch tasks');
-            console.error('Fetch error:', error);
-        } finally {
-            setIsLoading(false);
         }
-    };
+        fetchTasks()
+    }, [dispatch])
 
+    // Handler for adding new tasks
     const handleAddTask = async (newTask: NewTask) => {
         try {
+            // Create task in the backend
             const createdTask = await todoApi.createTodo(newTask);
-            console.log('Created task:', createdTask);
             
             // Update local state with the new task
-            setTasks(prevTasks => [...prevTasks, createdTask]);
+            dispatch({ type: 'ADD_TODO', payload: createdTask });
             
+            // Show success message
             toast.custom(() => (
                 <SuccessToast message="Task added successfully" />
             ));
-            
-            // Removed fetchTasks() call since it's redundant
         } catch (error) {
             console.error('Failed to add task:', error);
             toast.error('Failed to add task');
         }
     };
 
+    // Handler for toggling task completion status
     const toggleTaskCompletion = async (taskId: string) => {
-        const task = tasks.find(t => t.id === taskId);
+        const task = state.tasks.find(t => t.id === taskId);
         if (!task) return;
 
-        // Optimistic update
-        setTasks(tasks.map(t => 
-            t.id === taskId ? { ...t, completed: !t.completed } : t
-        ));
+        // Optimistic update - Update UI before API call
+        dispatch({ type: 'UPDATE_TODO', payload: { ...task, completed: !task.completed } });
 
         try {
+            // Update in the backend
             await todoApi.updateTodo(taskId, { completed: !task.completed });
             toast.custom(() => (
                 <SuccessToast message="Task updated successfully" />
             ));
-            // Removed fetchTasks() since optimistic update is sufficient
         } catch (error) {
-            // Revert on failure
-            setTasks(tasks);
+            // Revert optimistic update on failure
+            dispatch({ type: 'UPDATE_TODO', payload: task });
             toast.error('Failed to update task');
             console.error('Update error:', error);
         }
     };
 
-    const handleDeleteTask = async (taskId: string) => {
-        // Optimistic delete
-        setTasks(tasks.filter(t => t.id !== taskId));
-        
+    // Handler for deleting tasks
+    const handleDeleteTask = async (id: string) => {
         try {
-            await todoApi.deleteTodo(taskId);
+            // Delete from backend
+            await todoApi.deleteTodo(id)
+            // Update local state
+            dispatch({ type: 'DELETE_TODO', payload: id })
+            // Show success message
             toast.custom(() => (
-                <SuccessToast message="Task deleted successfully" />
-            ));
-            // Refresh the list to ensure sync with server
-            await fetchTasks();
+                <SuccessToast message="Task deleted successfully!" />
+            ))
         } catch (error) {
-            // Revert on failure
-            setTasks(tasks);
-            toast.error('Failed to delete task');
-            console.error('Delete error:', error);
+            console.error('Failed to delete task:', error)
+            toast.error('Failed to delete task')
         }
     };
 
+    // Handler for editing tasks
     const handleEditTask = async (taskId: string, updatedTask: Partial<Task>) => {
         // Find the current task
-        const currentTask = tasks.find(t => t.id === taskId);
+        const currentTask = state.tasks.find(t => t.id === taskId);
         if (!currentTask) return;
 
         // Optimistic update
-        setTasks(tasks.map(t => 
-            t.id === taskId ? { ...t, ...updatedTask } : t
-        ));
+        dispatch({ type: 'UPDATE_TODO', payload: { ...currentTask, ...updatedTask } });
 
         try {
+            // Update in the backend
             await todoApi.updateTodo(taskId, updatedTask);
             toast.custom(() => (
                 <SuccessToast message="Task updated successfully" />
             ));
-            // Refresh the list to ensure sync with server
-            await fetchTasks();
         } catch (error) {
-            // Revert on failure
-            setTasks(tasks);
+            // Revert optimistic update on failure
+            dispatch({ type: 'UPDATE_TODO', payload: currentTask });
             toast.error('Failed to update task');
             console.error('Update error:', error);
         }
@@ -159,46 +132,58 @@ export default function Todo() {
 
     return (
         <div className="flex flex-col h-full">
+            {/* Add Task Dialog Component */}
             <AddTaskDialog onAddTask={handleAddTask} />
-            {isLoading ? (
+
+            {/* Conditional Rendering based on state */}
+            {state.isLoading ? (
+                // Loading State
                 <div className="flex justify-center items-center flex-1">
                     Loading...
                 </div>
-            ) : error ? (
+            ) : state.error ? (
+                // Error State
                 <div className="flex flex-col items-center justify-center flex-1">
-                    <p className="text-red-500 mb-4">{error}</p>
+                    <p className="text-red-500 mb-4">{state.error}</p>
                     <p className="text-muted-foreground">
                         Try adding your first task using the button above
                     </p>
                 </div>
-            ) : tasks.length === 0 ? (
+            ) : state.tasks.length === 0 ? (
+                // Empty State
                 <div className="flex flex-col items-center justify-center flex-1">
                     <p className="text-muted-foreground">
                         No tasks yet. Add your first task using the button above
                     </p>
                 </div>
             ) : (
+                // Tasks List
                 <div className="flex-1">
+                    {/* Header with List Info */}
                     <div className="p-4 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800">
                         <div>
                             <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">
-                                {listData.title}
+                                {state.listData.title}
                             </h2>
                             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                {listData.date}
+                                {state.listData.date}
                             </p>
                         </div>
+                        {/* Progress Counter */}
                         <div className="flex items-center gap-2">
                             <span className="text-xs font-medium px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                                {listData.progress.completed}/{listData.progress.total} done
+                                {state.listData.progress.completed}/{state.listData.progress.total} done
                             </span>
                         </div>
                     </div>
 
-                    <ScrollArea className="h-[calc(100vh-12rem)]">
+                    {/* Scrollable Task List */}
+                    <ScrollArea className="h-[calc(100vh-14rem)]">
                         <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                            {tasks.map((task) => (
+                            {/* Map through tasks */}
+                            {state.tasks.map((task) => (
                                 <div key={task.id} className="p-3 flex items-center gap-3 group">
+                                    {/* Task Completion Toggle Button */}
                                     <button 
                                         type="button" 
                                         className="flex-none"
@@ -210,7 +195,10 @@ export default function Todo() {
                                             <Circle className="w-5 h-5 text-zinc-300 dark:text-zinc-600" />
                                         )}
                                     </button>
+
+                                    {/* Task Details */}
                                     <div className="flex-1 min-w-0">
+                                        {/* Task Title */}
                                         <div className="flex items-center gap-2">
                                             <p className={cn(
                                                 "text-sm",
@@ -221,6 +209,8 @@ export default function Todo() {
                                                 {task.title}
                                             </p>
                                         </div>
+
+                                        {/* Task Description (if exists) */}
                                         {task.description && (
                                             <p className={cn(
                                                 "text-xs mt-0.5",
@@ -231,6 +221,8 @@ export default function Todo() {
                                                 {task.description}
                                             </p>
                                         )}
+
+                                        {/* Due Date (for incomplete tasks) */}
                                         {!task.completed && (
                                             <div className="flex items-center gap-2 mt-0.5">
                                                 <div className="flex items-center gap-1">
@@ -249,6 +241,8 @@ export default function Todo() {
                                             </div>
                                         )}
                                     </div>
+
+                                    {/* Task Actions Dropdown (for incomplete tasks) */}
                                     {!task.completed && (
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
@@ -261,6 +255,7 @@ export default function Todo() {
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+                                                {/* Edit Task Option */}
                                                 <DropdownMenuItem
                                                     className="focus:bg-zinc-100 dark:focus:bg-zinc-800"
                                                     onSelect={(e) => {
@@ -272,7 +267,7 @@ export default function Todo() {
                                                     Edit Task
                                                 </DropdownMenuItem>
                                                 
-
+                                                {/* Delete Task Option */}
                                                 <DropdownMenuItem 
                                                     className="text-rose-500 focus:text-rose-500 focus:bg-zinc-100 dark:focus:bg-zinc-800"
                                                     onClick={() => handleDeleteTask(task.id)}
@@ -289,6 +284,7 @@ export default function Todo() {
                 </div>
             )}
 
+            {/* Edit Task Dialog */}
             {selectedTask && (
                 <EditTaskDialog
                     task={selectedTask}

@@ -1,22 +1,107 @@
-# React + TypeScript + Vite
+# Todo Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, full-stack Todo application built with React, TypeScript, and Vite. Manage your tasks with features like due dates, descriptions, and real-time updates.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- ✨ Create, read, update, and delete todos
+- 🔒 Secure authentication system
+- ⏰ Task scheduling with due dates and times
+- 📝 Detailed task descriptions
+- 🎯 Task completion tracking
+- 🔄 Real-time updates
+- 📱 Responsive design
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- **Frontend:**
+  - React
+  - TypeScript
+  - Vite
+  - Axios for API calls
+  - TailwindCSS for styling
+  - Shadcn/UI for components
+  - Vitest for testing
+  - Eslint for linting
+  - Prettier for code formatting
+  - React-hook-form for form handling
+  - Zod for data validation
+  - React-router-dom for navigation
 
-- Configure the top-level `parserOptions` property like this:
+- **Authentication:**
+  - JWT (Token-based authentication)
 
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v14 or higher)
+- npm or yarn
+- API server running (default: localhost:8000)
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/your-username/todo-app.git
+```
+
+2. Install dependencies:
+```bash
+pnpm install
+```
+
+3. Set up environment variables:
+Create a `.env` file in the root directory:
+```env
+VITE_API_URL=http://localhost:8000/api/v1
+```
+
+4. Start the development server:
+```bash
+pnpm run dev
+```
+
+## API Documentation
+
+### Endpoints
+
+- `GET /todos` - Fetch all todos
+- `POST /todos` - Create a new todo
+- `PUT /todos/:id` - Update a todo
+- `DELETE /todos/:id` - Delete a todo
+
+### Todo Object Structure
+
+```typescript
+interface Task {
+    id: string;
+    title: string;
+    description: string;
+    completed: boolean;
+    dueDate: string;
+    time: string;
+}
+```
+
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| VITE_API_URL | API base URL | http://localhost:8000/api/v1 |
+
+## Development
+
+This project uses Vite with HMR (Hot Module Replacement) and includes ESLint configuration.
+
+### ESLint Configuration
+
+For production applications, enable type-aware lint rules:
+
+1. Configure parserOptions:
 ```js
 export default tseslint.config({
   languageOptions: {
-    // other options...
     parserOptions: {
       project: ['./tsconfig.node.json', './tsconfig.app.json'],
       tsconfigRootDir: import.meta.dirname,
@@ -25,26 +110,26 @@ export default tseslint.config({
 })
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
-
+2. Install and configure eslint-plugin-react:
 ```js
-// eslint.config.js
 import react from 'eslint-plugin-react'
 
 export default tseslint.config({
-  // Set the react version
   settings: { react: { version: '18.3' } },
   plugins: {
-    // Add the react plugin
     react,
   },
   rules: {
-    // other rules...
-    // Enable its recommended rules
     ...react.configs.recommended.rules,
     ...react.configs['jsx-runtime'].rules,
   },
 })
 ```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request

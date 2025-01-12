@@ -8,40 +8,43 @@ import { ThemeProvider } from '@/components/theme-provider'
 import Register from './Register'
 import { AuthGuard } from '@/components/auth-guard'
 import { Toaster } from 'sonner'
+import { TodoProvider } from '@/contexts/TodoContext'
 
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <Toaster richColors duration={3000} position='top-right' />
-      <BrowserRouter>
-        <Routes>
-          <Route
-            path='/'
-            element={
-              <AuthGuard requireAuth>
-                <App />
-              </AuthGuard>
-            }
-          />
-          <Route
-            path='/login'
-            element={
-              <AuthGuard>
-                <Login />
-              </AuthGuard>
-            }
-          />
-          <Route
-            path='/register'
-            element={
-              <AuthGuard>
-                <Register />
-              </AuthGuard>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
+      <TodoProvider>
+        <Toaster richColors duration={3000} position='top-right' />
+        <BrowserRouter>
+          <Routes>
+            <Route
+              path='/'
+              element={
+                <AuthGuard requireAuth>
+                  <App />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path='/login'
+              element={
+                <AuthGuard>
+                  <Login />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path='/register'
+              element={
+                <AuthGuard>
+                  <Register />
+                </AuthGuard>
+              }
+            />
+          </Routes>
+        </BrowserRouter>
+      </TodoProvider>
     </ThemeProvider>
   </StrictMode>,
 )
