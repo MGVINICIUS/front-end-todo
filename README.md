@@ -99,6 +99,30 @@ interface Task {
 
 This project uses Vite with HMR (Hot Module Replacement) and includes ESLint configuration.
 
+### Available Commands
+
+
+#### Building
+```bash
+# Build the application
+pnpm build
+```
+
+#### Testing
+```bash
+# Run tests in watch mode
+pnpm test
+```
+
+#### Code Formatting
+```bash
+# Check code formatting
+pnpm format
+
+# Fix code formatting issues
+pnpm format:fix
+```
+
 ### ESLint Configuration
 
 For production applications, enable type-aware lint rules:

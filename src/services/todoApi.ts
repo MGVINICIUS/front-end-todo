@@ -115,8 +115,6 @@ export const todoApi = {
       description: response.data.description || '',
       completed: response.data.completed || false,
       dueDate: response.data.dueDate,
-      priority: response.data.priority || 'medium',
-      isUrgent: response.data.priority === 'high',
       time: formatTime(response.data.dueDate),
     }
   },
