@@ -18,6 +18,7 @@ import { todoApi } from '@/services/todoApi';
 import { toast } from 'sonner';
 import { SuccessToast } from '@/components/success-toast';
 import { Task, NewTask, ListData } from '@/types/todo';
+import { EditTaskDialog } from "@/components/dialog/EditTaskDialog";
 
 export default function Todo() {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -35,6 +36,8 @@ export default function Todo() {
             total: 0
         }
     });
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
     // Fetch initial data
     useEffect(() => {
@@ -79,8 +82,7 @@ export default function Todo() {
                 <SuccessToast message="Task added successfully" />
             ));
             
-            // Refresh the list to ensure sync with server
-            await fetchTasks();
+            // Removed fetchTasks() call since it's redundant
         } catch (error) {
             console.error('Failed to add task:', error);
             toast.error('Failed to add task');
@@ -127,6 +129,31 @@ export default function Todo() {
             setTasks(tasks);
             toast.error('Failed to delete task');
             console.error('Delete error:', error);
+        }
+    };
+
+    const handleEditTask = async (taskId: string, updatedTask: Partial<Task>) => {
+        // Find the current task
+        const currentTask = tasks.find(t => t.id === taskId);
+        if (!currentTask) return;
+
+        // Optimistic update
+        setTasks(tasks.map(t => 
+            t.id === taskId ? { ...t, ...updatedTask } : t
+        ));
+
+        try {
+            await todoApi.updateTodo(taskId, updatedTask);
+            toast.custom(() => (
+                <SuccessToast message="Task updated successfully" />
+            ));
+            // Refresh the list to ensure sync with server
+            await fetchTasks();
+        } catch (error) {
+            // Revert on failure
+            setTasks(tasks);
+            toast.error('Failed to update task');
+            console.error('Update error:', error);
         }
     };
 
@@ -234,9 +261,18 @@ export default function Todo() {
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
-                                            <DropdownMenuItem className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 focus:text-zinc-900 dark:focus:text-zinc-100 focus:bg-zinc-100 dark:focus:bg-zinc-800">
+                                            <DropdownMenuItem
+                                                className="focus:bg-zinc-100 dark:focus:bg-zinc-800"
+                                                onSelect={(e) => {
+                                                    e.preventDefault();
+                                                    setSelectedTask(task);
+                                                    setEditDialogOpen(true);
+                                                }}
+                                            >
                                                 Edit Task
                                             </DropdownMenuItem>
+                                            
+
                                             <DropdownMenuItem 
                                                 className="text-rose-500 focus:text-rose-500 focus:bg-zinc-100 dark:focus:bg-zinc-800"
                                                 onClick={() => handleDeleteTask(task.id)}
@@ -250,6 +286,15 @@ export default function Todo() {
                         ))}
                     </div>
                 </div>
+            )}
+
+            {selectedTask && (
+                <EditTaskDialog
+                    task={selectedTask}
+                    open={editDialogOpen}
+                    onOpenChange={setEditDialogOpen}
+                    onEditTask={handleEditTask}
+                />
             )}
         </div>
     );

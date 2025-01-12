@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -6,14 +8,12 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus } from "lucide-react";
 import React from 'react';
 import { Textarea } from "@/components/ui/textarea";
-import { NewTask } from '@/types/todo';
+import { Task } from '@/types/todo';
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -25,10 +25,23 @@ type FormData = {
 
 const MAX_DATE = new Date(2038, 0, 19, 3, 14, 7);
 
-export function AddTaskDialog({ onAddTask }: { onAddTask: (task: NewTask) => void }) {
-    const [open, setOpen] = React.useState(false);
+interface EditTaskDialogProps {
+    task: Task;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onEditTask: (taskId: string, updatedTask: Partial<Task>) => void;
+}
+
+export function EditTaskDialog({ task, open, onOpenChange, onEditTask }: EditTaskDialogProps) {
     const [isSubmitting, setIsSubmitting] = React.useState(false);
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>();
+    
+    const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+        defaultValues: {
+            title: task.title,
+            description: task.description,
+            dueDate: task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : '',
+        }
+    });
 
     const onSubmit = async (data: FormData) => {
         if (isSubmitting) return;
@@ -36,41 +49,30 @@ export function AddTaskDialog({ onAddTask }: { onAddTask: (task: NewTask) => voi
         try {
             setIsSubmitting(true);
             
-            const newTask: NewTask = {
+            const updatedTask = {
                 title: data.title.trim(),
                 description: data.description?.trim() || '',
                 dueDate: data.dueDate || new Date().toISOString(),
             };
             
-            console.log('Submitting task:', newTask);
-            await onAddTask(newTask);
-            reset();
-            setOpen(false);
+            await onEditTask(task.id, updatedTask);
+            onOpenChange(false);
         } catch (error) {
-            console.error('Failed to add task:', error);
-            toast.error(error instanceof Error ? error.message : "Failed to create task");
+            console.error('Failed to edit task:', error);
+            toast.error(error instanceof Error ? error.message : "Failed to update task");
         } finally {
             setIsSubmitting(false);
         }
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button 
-                    variant="ghost"
-                    className="w-full justify-start text-muted-foreground hover:text-foreground"
-                >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add new task
-                </Button>
-            </DialogTrigger>
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[425px]">
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <DialogHeader>
-                        <DialogTitle>Add new task</DialogTitle>
+                        <DialogTitle>Edit task</DialogTitle>
                         <DialogDescription>
-                            Create a new task to add to your list.
+                            Make changes to your task here.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="flex flex-col gap-6 py-4">
@@ -118,7 +120,7 @@ export function AddTaskDialog({ onAddTask }: { onAddTask: (task: NewTask) => voi
                             type="submit" 
                             disabled={isSubmitting}
                         >
-                            {isSubmitting ? 'Creating...' : 'Create Task'}
+                            {isSubmitting ? 'Saving...' : 'Save changes'}
                         </Button>
                     </DialogFooter>
                 </form>
