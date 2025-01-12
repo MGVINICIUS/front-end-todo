@@ -10,12 +10,26 @@ const axiosInstance = axios.create({
     }
 });
 
-// Simplified request interceptor
+// Add logging to request interceptor
 axiosInstance.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
+    
     if (token) {
+        // Check token expiration
+        const [, payload] = token.split('.');
+        const decodedPayload = JSON.parse(atob(payload));
+        
+        // If token is expired, remove it and redirect to login
+        if (decodedPayload.exp * 1000 < Date.now()) {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+            return Promise.reject('Token expired');
+        }
+
         const cleanToken = token.replace(/^bearer\s+/i, '').trim();
         config.headers['Authorization'] = `Bearer ${cleanToken}`;
+    } else {
+        console.warn('No token found in localStorage');
     }
     return config;
 });
@@ -64,6 +78,10 @@ export const todoApi = {
             }));
         } catch (error) {
             console.error('Failed to fetch todos:', error);
+            if (axios.isAxiosError(error)) {
+                console.error('Response:', error.response?.data); // Debug error response
+                console.error('Status:', error.response?.status);
+            }
             return [];
         }
     },

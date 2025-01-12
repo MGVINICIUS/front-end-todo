@@ -52,7 +52,6 @@ export function AddTaskDialog({ onAddTask }: { onAddTask: (task: NewTask) => voi
                 dueDate: data.dueDate || new Date().toISOString(),
             };
             
-            console.log('Submitting task:', newTask);
             await onAddTask(newTask);
             reset();
             setOpen(false);

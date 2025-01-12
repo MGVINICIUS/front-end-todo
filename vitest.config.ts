@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./src/tests/setup/handlers.ts'],
+    setupFiles: ['./src/test/setup.ts'],
     alias: {
       '@': resolve(__dirname, './src'),
     },

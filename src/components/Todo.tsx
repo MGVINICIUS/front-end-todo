@@ -29,7 +29,6 @@ export default function Todo() {
     // Local state for managing the edit dialog
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-
     // Fetch tasks on component mount
     useEffect(() => {
         const fetchTasks = async () => {

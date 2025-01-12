@@ -11,6 +11,11 @@ interface TodoState {
   editDialogOpen: boolean
 }
 
+interface TodoProviderProps {
+  children: ReactNode
+  initialState?: TodoState
+}
+
 // Define all possible actions that can be dispatched
 type TodoAction =
   | { type: 'FETCH_TODOS_START' }                    // Start loading todos
@@ -138,9 +143,20 @@ const TodoContext = createContext<{
 } | null>(null)
 
 // Provider component that wraps the app
-export const TodoProvider = ({ children }: { children: ReactNode }) => {
+export function TodoProvider({ children, initialState }: TodoProviderProps) {
   // Initialize the reducer with initial state
-  const [state, dispatch] = useReducer(todoReducer, initialState)
+  const [state, dispatch] = useReducer(todoReducer, initialState || {
+    tasks: [],
+    isLoading: true,
+    error: null,
+    listData: {
+      title: 'Today',
+      date: new Date().toLocaleDateString(),
+      progress: { completed: 0, total: 0 }
+    },
+    selectedTask: null,
+    editDialogOpen: false
+  })
 
   return (
     <TodoContext.Provider value={{ state, dispatch }}>

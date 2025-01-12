@@ -61,6 +61,7 @@ export function LoginForm({
     const startTime = Date.now()
     try {
       setIsLoading(true)
+      setServerError(null)
 
       const apiUrl = `${import.meta.env.VITE_API_URL}/auth/login`
 
@@ -72,13 +73,20 @@ export function LoginForm({
         body: JSON.stringify(data),
       })
 
+      const responseData = await response.json()
+
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Login failed")
+        throw new Error(responseData.message || "Login failed")
       }
 
-      const responseData: { token: string } = await response.json()
-      localStorage.setItem("token", responseData.token)
+      console.log('Login successful for:', data.email)
+      console.log('Received token:', responseData.token)
+      
+      localStorage.removeItem('token')
+      localStorage.setItem('token', responseData.token)
+      
+      console.log('Stored token:', localStorage.getItem('token'))
+
       navigate("/")
     } catch (err) {
       console.error('Login error:', err)
