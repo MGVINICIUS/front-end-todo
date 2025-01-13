@@ -26,6 +26,7 @@ type TodoAction =
   | { type: 'DELETE_TODO'; payload: string } // Delete todo by id
   | { type: 'SET_SELECTED_TASK'; payload: Task | null } // Set task for editing
   | { type: 'TOGGLE_EDIT_DIALOG'; payload: boolean } // Toggle edit dialog
+  | { type: 'SET_TODOS'; payload: Task[] } // Set todos
 
 // Initial state for the todo context
 const initialState: TodoState = {
@@ -130,6 +131,13 @@ const todoReducer = (state: TodoState, action: TodoAction): TodoState => {
     // Handle toggling the edit dialog
     case 'TOGGLE_EDIT_DIALOG':
       return { ...state, editDialogOpen: action.payload }
+
+    // Handle setting todos
+    case 'SET_TODOS':
+      return {
+        ...state,
+        tasks: action.payload
+      }
 
     // Return current state for unknown actions
     default:

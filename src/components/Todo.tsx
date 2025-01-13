@@ -16,6 +16,7 @@ import { Task, NewTask } from '@/types/todo'
 import { EditTaskDialog } from '@/components/dialog/EditTaskDialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useTodo } from '@/contexts/TodoContext'
+import { SortButton, SortOption, SortDirection } from '@/components/SortButton'
 
 export default function Todo() {
   // Get state and dispatch from TodoContext
@@ -24,6 +25,9 @@ export default function Todo() {
   // Local state for managing the edit dialog
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [sortOption, setSortOption] = useState<SortOption>('dueDate')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+
   // Fetch tasks on component mount
   useEffect(() => {
     const fetchTasks = async () => {
@@ -116,6 +120,30 @@ export default function Todo() {
     }
   }
 
+  const handleSort = (option: SortOption, direction: SortDirection) => {
+    setSortOption(option)
+    setSortDirection(direction)
+    
+    const sortedTasks = [...state.tasks].sort((a, b) => {
+      if (option === 'dueDate') {
+        return direction === 'asc' 
+          ? new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+          : new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()
+      }
+      if (option === 'title') {
+        return direction === 'asc'
+          ? a.title.localeCompare(b.title)
+          : b.title.localeCompare(a.title)
+      }
+      // completed
+      return direction === 'asc'
+        ? Number(a.completed) - Number(b.completed)
+        : Number(b.completed) - Number(a.completed)
+    })
+
+    dispatch({ type: 'SET_TODOS', payload: sortedTasks })
+  }
+
   return (
     <div className='flex flex-col h-full'>
       {/* Add Task Dialog Component */}
@@ -149,8 +177,12 @@ export default function Todo() {
               </h2>
               <p className='text-sm text-zinc-500 dark:text-zinc-400'>{state.listData.date}</p>
             </div>
-            {/* Progress Counter */}
             <div className='flex items-center gap-2'>
+              <SortButton
+                currentSort={sortOption}
+                direction={sortDirection}
+                onSort={handleSort}
+              />
               <span className='text-xs font-medium px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'>
                 {state.listData.progress.completed}/{state.listData.progress.total} done
               </span>
